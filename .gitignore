@@ -7,3 +7,6 @@ datawash/
 *.pyo
 *.pyd
 __pycache__/
+
+# Config files containing sensitive information
+config.yml

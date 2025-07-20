@@ -20,6 +20,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Type
 import os
+import yaml
 
 from llmsr import sampler
 from llmsr import evaluator
@@ -43,7 +44,7 @@ class ExperienceBufferConfig:
     cluster_sampling_temperature_period: int = 30_000
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass()
 class Config:
     """Configuration for LLMSR experiments.
    
@@ -60,8 +61,20 @@ class Config:
     num_evaluators: int = 1
     samples_per_prompt: int = 4
     evaluate_timeout_seconds: int = 30  
-    use_api: bool = False
     api_model: str = "gpt-3.5-turbo"
+    API_KEY: str = ""
+    api_base_url: str = "https://api.openai.com/v1"
+    max_sample_num: int = 1000
+
+    def load_from_yaml(self, config_path: str):
+        """Load configuration from a YAML file."""
+        with open(config_path, 'r') as file:
+            config_data = yaml.safe_load(file)
+        for key, value in config_data.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                raise ValueError(f"Unknown configuration key: {key}")
 
 
 @dataclasses.dataclass()

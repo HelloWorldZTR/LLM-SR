@@ -51,7 +51,6 @@ def main(
         specification: str,
         inputs: Sequence[Any],
         config: config_lib.Config,
-        max_sample_nums: int | None,
         class_config: config_lib.ClassConfig,
         **kwargs
 ):
@@ -90,10 +89,8 @@ def main(
 
     # Set global max sample nums.
     samplers = [sampler.Sampler(database, evaluators, 
-                                config.samples_per_prompt, 
-                                max_sample_nums=max_sample_nums, 
                                 llm_class=class_config.llm_class,
-                                config = config) 
+                                config=config) 
                                 for _ in range(config.num_samplers)]
 
     # This loop can be executed in parallel on remote sampler machines. As each
