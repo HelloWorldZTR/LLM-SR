@@ -1,0 +1,9 @@
+# raw data and logs
+logs/
+datawash/
+
+# Ignore all Python bytecode files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/

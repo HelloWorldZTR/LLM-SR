@@ -28,6 +28,7 @@ import requests
 import json
 import http.client
 import os
+from openai import OpenAI
 
 
 
@@ -177,6 +178,9 @@ class LocalLLM(LLM):
         self._url = url
         self._instruction_prompt = instruction_prompt
         self._trim = trim
+        self._openai_client = OpenAI(
+            api_key=os.environ["API_KEY"]
+        )
 
 
     def draw_samples(self, prompt: str, config: config_lib.Config) -> Collection[str]:
@@ -246,8 +250,8 @@ class LocalLLM(LLM):
                     all_samples.append(response)
                     break
 
-                except Exception:
-                    continue
+                except Exception as e:
+                    print(e)
         
         return all_samples
     
