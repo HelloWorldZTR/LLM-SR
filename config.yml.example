@@ -2,11 +2,12 @@ API_KEY: sk-yourapi-key
 
 num_samplers: 1
 num_evaluators: 1
-
 samples_per_prompt: 4
 evaluate_timeout_seconds: 30  
+snapshot_interval: 100
 
 api_model: gpt-3.5-turbo
 api_base_url: https://api.openai.com/v1
 
 max_sample_num: 1000
+max_tokens: 2048

@@ -60,11 +60,13 @@ class Config:
     num_samplers: int = 1 
     num_evaluators: int = 1
     samples_per_prompt: int = 4
-    evaluate_timeout_seconds: int = 30  
+    evaluate_timeout_seconds: int = 30
+    snapshot_interval: int = 100
     api_model: str = "gpt-3.5-turbo"
     API_KEY: str = ""
     api_base_url: str = "https://api.openai.com/v1"
     max_sample_num: int = 1000
+    max_tokens: int = 2048
 
     def load_from_yaml(self, config_path: str):
         """Load configuration from a YAML file."""

@@ -212,6 +212,8 @@ class LocalSandbox(Sandbox):
             
         # if raise any exception, execution is failed
         except Exception as e:
+            print('Running the program failed:')
+            print(program)
             print(f"Execution Error: {e}")
             result_queue.put((None, False))
 
@@ -247,31 +249,26 @@ class Evaluator:
         self._timeout_seconds = timeout_seconds
         self._sandbox = sandbox_class()
 
-    def analyse(
-            self,
-            sample: str,
-            island_id: int | None,
-            version_generated: int | None,
-            **kwargs 
-    ) -> None:
-        """ Compile the hypothesis sample into a program and executes it on test inputs. """
+    def analyse(self, sample: str, island_id: int | None, version_generated: int | None, **kwargs) -> None:
+        """ Compile the hypothesis sample into a program and executes it on dataset[mode] input, 
+        If the mode is 'train',  store it in the exp buffer if the execution is successful.
+        """
         new_function, program = _sample_to_program(
             sample, version_generated, self._template, self._function_to_evolve)
         scores_per_test = {}
 
         time_reset = time.time()
         
-        for current_input in self._inputs:
-            test_output, runs_ok = self._sandbox.run(
-                program, self._function_to_run, self._function_to_evolve, self._inputs, current_input,
-                self._timeout_seconds
-            )
+        test_output, runs_ok = self._sandbox.run(
+            program, self._function_to_run, self._function_to_evolve, self._inputs, 'train',
+            self._timeout_seconds
+        )
 
-            if runs_ok and not _calls_ancestor(program, self._function_to_evolve) and test_output is not None:
-                if not isinstance(test_output, (int, float)):
-                    print(f'Error: test_output is {test_output}')
-                    raise ValueError('@function.run did not return an int/float score.')
-                scores_per_test[current_input] = test_output
+        if runs_ok and not _calls_ancestor(program, self._function_to_evolve) and test_output is not None:
+            if not isinstance(test_output, (int, float)):
+                print(f'Error: test_output is {test_output}')
+                raise ValueError('@function.run did not return an int/float score.')
+            scores_per_test['train'] = test_output
 
         evaluate_time = time.time() - time_reset
 
@@ -280,10 +277,10 @@ class Evaluator:
                 new_function,
                 island_id,
                 scores_per_test,
-                **kwargs,
-                evaluate_time=evaluate_time
-            )
-        
+            **kwargs,
+            evaluate_time=evaluate_time
+        )
+    
         else:
             profiler: profile.Profiler = kwargs.get('profiler', None)
             if profiler:
@@ -294,3 +291,34 @@ class Evaluator:
                 new_function.sample_time = sample_time
                 new_function.evaluate_time = evaluate_time
                 profiler.register_function(new_function)
+    
+    def test_best(self, **kwargs) -> None:
+        """ Print the training and validation scores of the best program per island. """
+        scores = []
+        for id, best_prog_per_island in enumerate(self._database._best_program_per_island):
+            best_scores = {}
+            for mode in self._inputs:
+                best_score = None
+                _, prog = _sample_to_program(
+                    best_prog_per_island.body, None, self._template, self._function_to_evolve
+                )
+                test_output, runs_ok = self._sandbox.run(
+                    prog, self._function_to_run, self._function_to_evolve, self._inputs, mode,
+                    self._timeout_seconds
+                )
+
+                if runs_ok and test_output is not None:
+                    if not isinstance(test_output, (int, float)):
+                        print(f'Error: test_output is {test_output}')
+                        raise ValueError('@function.run did not return an int/float score.')
+                    best_score = test_output
+                
+                if best_score is not None:
+                    best_scores[mode] = best_score
+                else:
+                    best_scores[mode] = None
+            scores.append(best_scores)
+            print('Island', id, best_scores)
+        profiler: profile.Profiler = kwargs.get('profiler', None)
+        if profiler:
+            profiler.register_best_info(scores)

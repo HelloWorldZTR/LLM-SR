@@ -72,6 +72,13 @@ class Sampler:
                 break
             
             prompt = self._database.get_prompt()
+            print("="*20)
+            print("Prompt generated")
+            print("-"*20)
+            print(prompt.code)
+            print("-"*20)
+            print("Prompt generated")
+            print("="*20)
             
             reset_time = time.time()
             samples = self._llm.draw_samples(prompt.code,self.config)
@@ -90,6 +97,8 @@ class Sampler:
                     global_sample_nums=cur_global_sample_nums,
                     sample_time=sample_time
                 )
+                if cur_global_sample_nums % self.config.snapshot_interval == 0:
+                    chosen_evaluator.test_best(**kwargs)
 
     def _get_global_sample_nums(self) -> int:
         return self.__class__._global_samples_nums
@@ -178,10 +187,10 @@ class LocalLLM(LLM):
                 res = self._openai_client.chat.completions.create(
                     model=self._model,
                     messages=[
-                        {"role": "system", "content": self._instruction_prompt}
-                        ,{"role": "user", "content": prompt}
+                        {"role": "system", "content": self._instruction_prompt},
+                        {"role": "user", "content": prompt}
                     ],
-                    max_tokens=512,
+                    max_completion_tokens=config.max_tokens,
                 )
 
                 response = res.choices[0].message.content

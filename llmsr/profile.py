@@ -102,6 +102,15 @@ class Profiler:
             self._record_and_verbose(sample_orders)
             self._write_tensorboard()
             self._write_json(programs)
+    
+    def register_best_info(self, scores):
+        for island_id, score in enumerate(scores):
+            self._writer.add_scalars(
+                f'Training details for Island{island_id+1}',
+                score,
+                global_step=self._num_samples
+            )
+                
 
     def _record_and_verbose(self, sample_orders: int):
         function = self._all_sampled_functions[sample_orders]

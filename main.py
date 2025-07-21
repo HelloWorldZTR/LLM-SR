@@ -44,10 +44,26 @@ if __name__ == '__main__':
     if 'torch' in args.spec_path:
         X = torch.Tensor(X)
         y = torch.Tensor(y)
-    data_dict = {'inputs': X, 'outputs': y}
-    dataset = {'data': data_dict} 
-    
-    
+    data_dict_train = {'inputs': X, 'outputs': y}
+    df = pd.read_csv('./data/'+problem_name+'/test_id.csv')
+    data = np.array(df)
+    X = data[:, :-1]
+    y = data[:, -1].reshape(-1)
+    if 'torch' in args.spec_path:
+        X = torch.Tensor(X)
+        y = torch.Tensor(y)
+    data_dict_test_id = {'inputs': X, 'outputs': y}
+    df = pd.read_csv('./data/'+problem_name+'/test_ood.csv')
+    data = np.array(df)
+    X = data[:, :-1]
+    y = data[:, -1].reshape(-1)
+    if 'torch' in args.spec_path:
+        X = torch.Tensor(X)
+        y = torch.Tensor(y)
+    data_dict_test_ood = {'inputs': X, 'outputs': y}
+    dataset = {'train': data_dict_train, 'valid_id': data_dict_test_id, 'valid_ood': data_dict_test_ood}
+
+
     pipeline.main(
         specification=specification,
         inputs=dataset,
