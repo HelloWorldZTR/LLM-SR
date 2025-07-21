@@ -20,7 +20,7 @@
 # python main.py --use_api True --api_model "gpt-4o" --problem_name stressstrain --spec_path ./specs/specification_stressstrain_numpy.txt --log_path ./logs/stressstrain_gpt4o
 
 
-
+python main.py --problem_name bactgrow --spec_path ./specs/specification_bactgrow_auto.py --log_path ./logs/bactgrow_auto --config config.yml
 
 
 ################ LLMSR with LOCAL LLM ################
